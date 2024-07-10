@@ -1,13 +1,10 @@
-// User data (in a real app, this would be server-side)
-const users = [
-    { username: 'admin', password: 'adminpass', role: 'admin' },
-    { username: 'user', password: 'userpass', role: 'user' }
-];
+// Admin credentials (in a real app, this would be server-side)
+const adminCredentials = { username: 'admin', password: 'adminpass' };
 
 // DOM elements
 const loginForm = document.getElementById('loginForm');
 const adminPanel = document.getElementById('adminPanel');
-const userPanel = document.getElementById('userPanel');
+const contractorPanel = document.getElementById('contractorPanel');
 const siteList = document.getElementById('siteList');
 const siteSelect = document.getElementById('siteSelect');
 const currentlySignedInTable = document.getElementById('currentlySignedIn').querySelector('tbody');
@@ -55,35 +52,32 @@ function updateSubcontractorTable() {
 document.getElementById('loginButton').addEventListener('click', () => {
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
-    const user = users.find(u => u.username === username && u.password === password);
-    if (user) {
+    if (username === adminCredentials.username && password === adminCredentials.password) {
         loginForm.classList.add('hidden');
-        if (user.role === 'admin') {
-            adminPanel.classList.remove('hidden');
-        } else {
-            userPanel.classList.remove('hidden');
-        }
+        adminPanel.classList.remove('hidden');
         updateSitesList();
-        updateSubcontractorTable();
     } else {
         alert('Invalid username or password');
     }
 });
 
 document.getElementById('addSiteButton').addEventListener('click', () => {
-    const siteName = document.getElementById('siteName');
-    if (siteName.value) {
-        sites.push(siteName.value);
-        siteName.value = '';
+    const siteName = document.getElementById('siteName').value.trim();
+    if (siteName && !sites.includes(siteName)) {
+        sites.push(siteName);
+        document.getElementById('siteName').value = '';
         updateSitesList();
         updateLocalStorage();
+    } else {
+        alert('Please enter a unique site name');
     }
+    console.log(sites);
 });
 
 document.getElementById('signInOutButton').addEventListener('click', () => {
     const site = siteSelect.value;
-    const name = document.getElementById('name').value;
-    const company = document.getElementById('company').value;
+    const name = document.getElementById('name').value.trim();
+    const company = document.getElementById('company').value.trim();
     if (site && name && company) {
         const existingIndex = subcontractors.findIndex(s => s.name === name && s.company === company && s.site === site);
         if (existingIndex === -1) {
@@ -97,12 +91,13 @@ document.getElementById('signInOutButton').addEventListener('click', () => {
         }
         updateLocalStorage();
         updateSubcontractorTable();
+    } else {
+        alert('Please fill in all fields');
     }
 });
 
 document.getElementById('logoutButton').addEventListener('click', () => {
     adminPanel.classList.add('hidden');
-    userPanel.classList.add('hidden');
     loginForm.classList.remove('hidden');
 });
 
