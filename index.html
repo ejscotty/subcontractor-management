@@ -4,199 +4,44 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Subcontractor Management</title>
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        /* ... (previous styles) ... */
-        .admin-panel, .site-management {
-            display: none;
-        }
-        .admin-panel.active, .site-management.active {
-            display: block;
-        }
-        #siteList {
-            margin-bottom: 10px;
-        }
+        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
+        input, select, button { width: 100%; padding: 10px; margin-bottom: 10px; }
+        table { width: 100%; border-collapse: collapse; }
+        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
+        .hidden { display: none; }
     </style>
 </head>
 <body>
-    <div class="login-form active">
+    <div id="loginForm">
         <h2>Login</h2>
-        <form id="loginForm">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Login</button>
-        </form>
+        <input type="text" id="username" placeholder="Username">
+        <input type="password" id="password" placeholder="Password">
+        <button id="loginButton">Login</button>
     </div>
 
-    <div class="admin-panel">
+    <div id="adminPanel" class="hidden">
         <h2>Admin Panel</h2>
-        <button id="manageSitesButton">Manage Sites</button>
-        <button id="viewSubcontractorsButton">View Subcontractors</button>
-        <button id="adminLogoutButton">Logout</button>
+        <button id="addSiteButton">Add Site</button>
+        <input type="text" id="siteName" placeholder="Site Name" class="hidden">
+        <ul id="siteList"></ul>
+        <button id="logoutButton">Logout</button>
     </div>
 
-    <div class="site-management">
-        <h2>Site Management</h2>
-        <form id="addSiteForm">
-            <input type="text" id="siteName" placeholder="Site Name" required>
-            <button type="submit">Add Site</button>
-        </form>
-        <ul id="sitesList"></ul>
-        <button id="backToAdminPanel">Back to Admin Panel</button>
-    </div>
-
-    <div class="app-content">
-        <h1>Subcontractor Management</h1>
-        <form id="subcontractorForm">
-            <select id="siteSelect" required>
-                <option value="">Select a site</option>
-            </select>
-            <input type="text" id="name" placeholder="Subcontractor Name" required>
-            <input type="text" id="company" placeholder="Company" required>
-            <button type="submit" id="signInOut">Sign In</button>
-        </form>
+    <div id="userPanel" class="hidden">
+        <h2>Subcontractor Sign In/Out</h2>
+        <select id="siteSelect"></select>
+        <input type="text" id="name" placeholder="Name">
+        <input type="text" id="company" placeholder="Company">
+        <button id="signInOutButton">Sign In/Out</button>
         <div id="status"></div>
-
-        <!-- ... (rest of the app-content div remains the same) ... -->
+        <h3>Currently Signed In</h3>
+        <table id="currentlySignedIn">
+            <thead><tr><th>Name</th><th>Company</th><th>Site</th><th>Sign In Time</th></tr></thead>
+            <tbody></tbody>
+        </table>
     </div>
 
-    <script>
-        // ... (previous JavaScript code) ...
-
-        const adminPanel = document.querySelector('.admin-panel');
-        const siteManagement = document.querySelector('.site-management');
-        const manageSitesButton = document.getElementById('manageSitesButton');
-        const viewSubcontractorsButton = document.getElementById('viewSubcontractorsButton');
-        const adminLogoutButton = document.getElementById('adminLogoutButton');
-        const addSiteForm = document.getElementById('addSiteForm');
-        const sitesList = document.getElementById('sitesList');
-        const backToAdminPanel = document.getElementById('backToAdminPanel');
-        const siteSelect = document.getElementById('siteSelect');
-
-        let sites = JSON.parse(localStorage.getItem('sites')) || [];
-
-        const users = [
-            { username: 'admin', password: 'adminpass', role: 'admin' },
-            { username: 'user', password: 'userpass', role: 'user' }
-        ];
-
-        function updateSitesList() {
-            sitesList.innerHTML = '';
-            siteSelect.innerHTML = '<option value="">Select a site</option>';
-            sites.forEach((site, index) => {
-                const li = document.createElement('li');
-                li.textContent = site;
-                const deleteButton = document.createElement('button');
-                deleteButton.textContent = 'Delete';
-                deleteButton.onclick = () => deleteSite(index);
-                li.appendChild(deleteButton);
-                sitesList.appendChild(li);
-
-                const option = document.createElement('option');
-                option.value = site;
-                option.textContent = site;
-                siteSelect.appendChild(option);
-            });
-            localStorage.setItem('sites', JSON.stringify(sites));
-        }
-
-        function deleteSite(index) {
-            sites.splice(index, 1);
-            updateSitesList();
-        }
-
-        function login(username, password) {
-            const user = users.find(u => u.username === username && u.password === password);
-            if (user) {
-                localStorage.setItem('currentUser', JSON.stringify(user));
-                return user.role;
-            }
-            return null;
-        }
-
-        loginForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-
-            const role = login(username, password);
-            if (role === 'admin') {
-                loginDiv.classList.remove('active');
-                adminPanel.classList.add('active');
-            } else if (role === 'user') {
-                loginDiv.classList.remove('active');
-                appContent.classList.add('active');
-                updateTables();
-                updateChart();
-            } else {
-                alert('Invalid username or password');
-            }
-        });
-
-        manageSitesButton.addEventListener('click', function() {
-            adminPanel.classList.remove('active');
-            siteManagement.classList.add('active');
-            updateSitesList();
-        });
-
-        viewSubcontractorsButton.addEventListener('click', function() {
-            adminPanel.classList.remove('active');
-            appContent.classList.add('active');
-            updateTables();
-            updateChart();
-        });
-
-        adminLogoutButton.addEventListener('click', function() {
-            localStorage.removeItem('currentUser');
-            adminPanel.classList.remove('active');
-            loginDiv.classList.add('active');
-        });
-
-        addSiteForm.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const siteName = document.getElementById('siteName').value;
-            sites.push(siteName);
-            updateSitesList();
-            addSiteForm.reset();
-        });
-
-        backToAdminPanel.addEventListener('click', function() {
-            siteManagement.classList.remove('active');
-            adminPanel.classList.add('active');
-        });
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const site = document.getElementById('siteSelect').value;
-            const name = document.getElementById('name').value;
-            const company = document.getElementById('company').value;
-            const now = new Date().toISOString();
-
-            // ... (rest of the form submit logic remains the same, but include 'site' in the data) ...
-
-            updateLocalStorage();
-            updateTables();
-            updateChart();
-            form.reset();
-        });
-
-        // ... (rest of the JavaScript code remains the same) ...
-
-        // Check login status on page load
-        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
-        if (currentUser) {
-            if (currentUser.role === 'admin') {
-                loginDiv.classList.remove('active');
-                adminPanel.classList.add('active');
-            } else if (currentUser.role === 'user') {
-                loginDiv.classList.remove('active');
-                appContent.classList.add('active');
-                updateTables();
-                updateChart();
-            }
-        }
-
-        updateSitesList();
-    </script>
+    <script src="app.js"></script>
 </body>
 </html>
