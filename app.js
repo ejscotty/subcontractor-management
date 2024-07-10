@@ -8,6 +8,7 @@ const contractorPanel = document.getElementById('contractorPanel');
 const siteList = document.getElementById('siteList');
 const siteSelect = document.getElementById('siteSelect');
 const currentlySignedInTable = document.getElementById('currentlySignedIn').querySelector('tbody');
+const allSitesTable = document.getElementById('allSitesTable').querySelector('tbody');
 
 // Data
 let sites = JSON.parse(localStorage.getItem('sites')) || [];
@@ -29,15 +30,33 @@ function updateSitesList() {
 }
 
 function deleteSite(index) {
+    const siteName = sites[index];
     sites.splice(index, 1);
+    subcontractors = subcontractors.filter(sub => sub.site !== siteName);
     updateSitesList();
     updateLocalStorage();
+    updateSubcontractorTable();
+    updateAllSitesTable();
 }
 
-function updateSubcontractorTable() {
+function updateSubcontractorTable(site) {
     currentlySignedInTable.innerHTML = '';
-    subcontractors.forEach(sub => {
+    const siteContractors = subcontractors.filter(sub => sub.site === site);
+    siteContractors.forEach(sub => {
         currentlySignedInTable.innerHTML += `
+            <tr>
+                <td>${sub.name}</td>
+                <td>${sub.company}</td>
+                <td>${new Date(sub.signInTime).toLocaleString()}</td>
+            </tr>
+        `;
+    });
+}
+
+function updateAllSitesTable() {
+    allSitesTable.innerHTML = '';
+    subcontractors.forEach(sub => {
+        allSitesTable.innerHTML += `
             <tr>
                 <td>${sub.name}</td>
                 <td>${sub.company}</td>
@@ -55,7 +74,9 @@ document.getElementById('loginButton').addEventListener('click', () => {
     if (username === adminCredentials.username && password === adminCredentials.password) {
         loginForm.classList.add('hidden');
         adminPanel.classList.remove('hidden');
+        contractorPanel.classList.add('hidden');
         updateSitesList();
+        updateAllSitesTable();
     } else {
         alert('Invalid username or password');
     }
@@ -71,7 +92,11 @@ document.getElementById('addSiteButton').addEventListener('click', () => {
     } else {
         alert('Please enter a unique site name');
     }
-    console.log(sites);
+});
+
+siteSelect.addEventListener('change', (e) => {
+    const selectedSite = e.target.value;
+    updateSubcontractorTable(selectedSite);
 });
 
 document.getElementById('signInOutButton').addEventListener('click', () => {
@@ -90,7 +115,7 @@ document.getElementById('signInOutButton').addEventListener('click', () => {
             document.getElementById('status').textContent = `${name} signed out from ${site}`;
         }
         updateLocalStorage();
-        updateSubcontractorTable();
+        updateSubcontractorTable(site);
     } else {
         alert('Please fill in all fields');
     }
@@ -99,8 +124,9 @@ document.getElementById('signInOutButton').addEventListener('click', () => {
 document.getElementById('logoutButton').addEventListener('click', () => {
     adminPanel.classList.add('hidden');
     loginForm.classList.remove('hidden');
+    contractorPanel.classList.remove('hidden');
 });
 
 // Initial setup
 updateSitesList();
-updateSubcontractorTable();
+updateAllSitesTable();
