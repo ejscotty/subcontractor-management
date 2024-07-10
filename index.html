@@ -7,14 +7,14 @@
     <style>
         body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
         input, select, button { width: 100%; padding: 10px; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; }
+        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
         th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
         .hidden { display: none; }
     </style>
 </head>
 <body>
     <div id="loginForm">
-        <h2>Login</h2>
+        <h2>Admin Login</h2>
         <input type="text" id="username" placeholder="Username">
         <input type="password" id="password" placeholder="Password">
         <button id="loginButton">Login</button>
@@ -22,17 +22,19 @@
 
     <div id="adminPanel" class="hidden">
         <h2>Admin Panel</h2>
+        <input type="text" id="siteName" placeholder="Site Name">
         <button id="addSiteButton">Add Site</button>
-        <input type="text" id="siteName" placeholder="Site Name" class="hidden">
         <ul id="siteList"></ul>
         <button id="logoutButton">Logout</button>
     </div>
 
-    <div id="userPanel" class="hidden">
+    <div id="contractorPanel">
         <h2>Subcontractor Sign In/Out</h2>
-        <select id="siteSelect"></select>
-        <input type="text" id="name" placeholder="Name">
-        <input type="text" id="company" placeholder="Company">
+        <select id="siteSelect">
+            <option value="">Select a site</option>
+        </select>
+        <input type="text" id="name" placeholder="Your Name">
+        <input type="text" id="company" placeholder="Your Company">
         <button id="signInOutButton">Sign In/Out</button>
         <div id="status"></div>
         <h3>Currently Signed In</h3>
