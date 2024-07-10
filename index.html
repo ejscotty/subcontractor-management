@@ -3,45 +3,105 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Subcontractor Management</title>
+    <title>SQN Contractor Portal</title>
     <style>
-        body { font-family: Arial, sans-serif; max-width: 800px; margin: 0 auto; padding: 20px; }
-        input, select, button { width: 100%; padding: 10px; margin-bottom: 10px; }
-        table { width: 100%; border-collapse: collapse; margin-top: 20px; }
-        th, td { border: 1px solid #ddd; padding: 8px; text-align: left; }
-        .hidden { display: none; }
+        :root {
+            --primary-color: #253746;
+            --secondary-color: #84BD41;
+            --text-color: #ffffff;
+            --background-color: #f0f0f0;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: var(--background-color);
+            color: var(--primary-color);
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        h1, h2, h3 {
+            color: var(--primary-color);
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0,0,0,0.1);
+        }
+        input, select, button {
+            width: 100%;
+            padding: 10px;
+            margin-bottom: 10px;
+            border: 1px solid var(--primary-color);
+            border-radius: 4px;
+        }
+        button {
+            background-color: var(--secondary-color);
+            color: var(--text-color);
+            border: none;
+            cursor: pointer;
+            font-weight: bold;
+        }
+        button:hover {
+            background-color: var(--primary-color);
+        }
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        th, td {
+            border: 1px solid var(--primary-color);
+            padding: 8px;
+            text-align: left;
+        }
+        th {
+            background-color: var(--primary-color);
+            color: var(--text-color);
+        }
+        .hidden {
+            display: none;
+        }
     </style>
 </head>
 <body>
-    <div id="loginForm">
-        <h2>Admin Login</h2>
-        <input type="text" id="username" placeholder="Username">
-        <input type="password" id="password" placeholder="Password">
-        <button id="loginButton">Login</button>
-    </div>
+    <div class="container">
+        <h1>SQN Contractor Portal</h1>
+        <div id="loginForm">
+            <h2>Admin Login</h2>
+            <input type="text" id="username" placeholder="Username">
+            <input type="password" id="password" placeholder="Password">
+            <button id="loginButton">Login</button>
+        </div>
 
-    <div id="adminPanel" class="hidden">
-        <h2>Admin Panel</h2>
-        <input type="text" id="siteName" placeholder="Site Name">
-        <button id="addSiteButton">Add Site</button>
-        <ul id="siteList"></ul>
-        <button id="logoutButton">Logout</button>
-    </div>
+        <div id="adminPanel" class="hidden">
+            <h2>Admin Panel</h2>
+            <input type="text" id="siteName" placeholder="Site Name">
+            <button id="addSiteButton">Add Site</button>
+            <ul id="siteList"></ul>
+            <h3>All Sites Overview</h3>
+            <table id="allSitesTable">
+                <thead><tr><th>Name</th><th>Company</th><th>Site</th><th>Sign In Time</th></tr></thead>
+                <tbody></tbody>
+            </table>
+            <button id="logoutButton">Logout</button>
+        </div>
 
-    <div id="contractorPanel">
-        <h2>Subcontractor Sign In/Out</h2>
-        <select id="siteSelect">
-            <option value="">Select a site</option>
-        </select>
-        <input type="text" id="name" placeholder="Your Name">
-        <input type="text" id="company" placeholder="Your Company">
-        <button id="signInOutButton">Sign In/Out</button>
-        <div id="status"></div>
-        <h3>Currently Signed In</h3>
-        <table id="currentlySignedIn">
-            <thead><tr><th>Name</th><th>Company</th><th>Site</th><th>Sign In Time</th></tr></thead>
-            <tbody></tbody>
-        </table>
+        <div id="contractorPanel">
+            <h2>Contractor Sign In/Out</h2>
+            <select id="siteSelect">
+                <option value="">Select a site</option>
+            </select>
+            <input type="text" id="name" placeholder="Your Name">
+            <input type="text" id="company" placeholder="Your Company">
+            <button id="signInOutButton">Sign In/Out</button>
+            <div id="status"></div>
+            <h3>Currently Signed In at This Site</h3>
+            <table id="currentlySignedIn">
+                <thead><tr><th>Name</th><th>Company</th><th>Sign In Time</th></tr></thead>
+                <tbody></tbody>
+            </table>
+        </div>
     </div>
 
     <script src="app.js"></script>
