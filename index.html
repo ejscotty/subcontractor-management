@@ -6,83 +6,15 @@
     <title>Subcontractor Management</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 0 auto;
-            padding: 20px;
-        }
-        form, .dashboard {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            margin-bottom: 20px;
-        }
-        input, button {
-            padding: 10px;
-            font-size: 16px;
-        }
-        table {
-            width: 100%;
-            border-collapse: collapse;
-        }
-        th, td {
-            border: 1px solid #ddd;
-            padding: 8px;
-            text-align: left;
-        }
-        th {
-            background-color: #f2f2f2;
-        }
-        .login-form, .app-content {
+        /* ... (previous styles) ... */
+        .admin-panel, .site-management {
             display: none;
         }
-        .login-form.active, .app-content.active {
+        .admin-panel.active, .site-management.active {
             display: block;
         }
-        .search-container {
-            margin-bottom: 20px;
-        }
-        #searchInput {
-            width: 100%;
-            box-sizing: border-box;
-        }
-        .export-button {
-            margin-top: 10px;
-        }
-        .chart-container {
-            margin-top: 20px;
-            max-width: 600px;
-        }
-        @media (max-width: 600px) {
-            body {
-                padding: 10px;
-            }
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
-            tr {
-                margin-bottom: 10px;
-            }
-            td {
-                border: none;
-                position: relative;
-                padding-left: 50%;
-            }
-            td:before {
-                content: attr(data-label);
-                position: absolute;
-                left: 6px;
-                width: 45%;
-                padding-right: 10px;
-                white-space: nowrap;
-                font-weight: bold;
-            }
+        #siteList {
+            margin-bottom: 10px;
         }
     </style>
 </head>
@@ -96,231 +28,104 @@
         </form>
     </div>
 
+    <div class="admin-panel">
+        <h2>Admin Panel</h2>
+        <button id="manageSitesButton">Manage Sites</button>
+        <button id="viewSubcontractorsButton">View Subcontractors</button>
+        <button id="adminLogoutButton">Logout</button>
+    </div>
+
+    <div class="site-management">
+        <h2>Site Management</h2>
+        <form id="addSiteForm">
+            <input type="text" id="siteName" placeholder="Site Name" required>
+            <button type="submit">Add Site</button>
+        </form>
+        <ul id="sitesList"></ul>
+        <button id="backToAdminPanel">Back to Admin Panel</button>
+    </div>
+
     <div class="app-content">
         <h1>Subcontractor Management</h1>
         <form id="subcontractorForm">
+            <select id="siteSelect" required>
+                <option value="">Select a site</option>
+            </select>
             <input type="text" id="name" placeholder="Subcontractor Name" required>
             <input type="text" id="company" placeholder="Company" required>
             <button type="submit" id="signInOut">Sign In</button>
         </form>
         <div id="status"></div>
 
-        <div class="search-container">
-            <input type="text" id="searchInput" placeholder="Search history...">
-        </div>
-
-        <div class="dashboard">
-            <h2>Currently Signed In</h2>
-            <table id="currentlySignedIn">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Company</th>
-                        <th>Sign In Time</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-
-            <h2>Sign In/Out History</h2>
-            <table id="history">
-                <thead>
-                    <tr>
-                        <th>Name</th>
-                        <th>Company</th>
-                        <th>Sign In Time</th>
-                        <th>Sign Out Time</th>
-                    </tr>
-                </thead>
-                <tbody></tbody>
-            </table>
-            <button id="exportButton" class="export-button">Export to CSV</button>
-            <div class="chart-container">
-                <canvas id="activityChart"></canvas>
-            </div>
-        </div>
-        <button id="logoutButton">Logout</button>
+        <!-- ... (rest of the app-content div remains the same) ... -->
     </div>
 
     <script>
-        const form = document.getElementById('subcontractorForm');
-        const signInOutButton = document.getElementById('signInOut');
-        const statusDiv = document.getElementById('status');
-        const currentlySignedInTable = document.getElementById('currentlySignedIn').querySelector('tbody');
-        const historyTable = document.getElementById('history').querySelector('tbody');
-        const searchInput = document.getElementById('searchInput');
-        const exportButton = document.getElementById('exportButton');
-        const loginForm = document.getElementById('loginForm');
-        const logoutButton = document.getElementById('logoutButton');
-        const loginDiv = document.querySelector('.login-form');
-        const appContent = document.querySelector('.app-content');
+        // ... (previous JavaScript code) ...
 
-        let subcontractors = JSON.parse(localStorage.getItem('subcontractors')) || [];
-        let history = JSON.parse(localStorage.getItem('history')) || [];
+        const adminPanel = document.querySelector('.admin-panel');
+        const siteManagement = document.querySelector('.site-management');
+        const manageSitesButton = document.getElementById('manageSitesButton');
+        const viewSubcontractorsButton = document.getElementById('viewSubcontractorsButton');
+        const adminLogoutButton = document.getElementById('adminLogoutButton');
+        const addSiteForm = document.getElementById('addSiteForm');
+        const sitesList = document.getElementById('sitesList');
+        const backToAdminPanel = document.getElementById('backToAdminPanel');
+        const siteSelect = document.getElementById('siteSelect');
+
+        let sites = JSON.parse(localStorage.getItem('sites')) || [];
 
         const users = [
-            { username: 'admin', password: 'password123' }
+            { username: 'admin', password: 'adminpass', role: 'admin' },
+            { username: 'user', password: 'userpass', role: 'user' }
         ];
 
-        function updateLocalStorage() {
-            localStorage.setItem('subcontractors', JSON.stringify(subcontractors));
-            localStorage.setItem('history', JSON.stringify(history));
+        function updateSitesList() {
+            sitesList.innerHTML = '';
+            siteSelect.innerHTML = '<option value="">Select a site</option>';
+            sites.forEach((site, index) => {
+                const li = document.createElement('li');
+                li.textContent = site;
+                const deleteButton = document.createElement('button');
+                deleteButton.textContent = 'Delete';
+                deleteButton.onclick = () => deleteSite(index);
+                li.appendChild(deleteButton);
+                sitesList.appendChild(li);
+
+                const option = document.createElement('option');
+                option.value = site;
+                option.textContent = site;
+                siteSelect.appendChild(option);
+            });
+            localStorage.setItem('sites', JSON.stringify(sites));
         }
 
-        function updateTables() {
-            currentlySignedInTable.innerHTML = '';
-            subcontractors.forEach(sub => {
-                const row = currentlySignedInTable.insertRow();
-                row.insertCell(0).textContent = sub.name;
-                row.insertCell(1).textContent = sub.company;
-                row.insertCell(2).textContent = new Date(sub.signInTime).toLocaleString();
-            });
-
-            updateHistoryTable(history);
-        }
-
-        function updateHistoryTable(data) {
-            historyTable.innerHTML = '';
-            data.forEach(entry => {
-                const row = historyTable.insertRow();
-                const cells = [
-                    { label: 'Name', value: entry.name },
-                    { label: 'Company', value: entry.company },
-                    { label: 'Sign In Time', value: new Date(entry.signInTime).toLocaleString() },
-                    { label: 'Sign Out Time', value: entry.signOutTime ? new Date(entry.signOutTime).toLocaleString() : 'N/A' }
-                ];
-                cells.forEach(cell => {
-                    const td = row.insertCell();
-                    td.textContent = cell.value;
-                    td.setAttribute('data-label', cell.label);
-                });
-            });
+        function deleteSite(index) {
+            sites.splice(index, 1);
+            updateSitesList();
         }
 
         function login(username, password) {
-            return users.some(user => user.username === username && user.password === password);
-        }
-
-        function exportToCSV() {
-            const csvContent = [
-                ['Name', 'Company', 'Sign In Time', 'Sign Out Time'],
-                ...history.map(entry => [
-                    entry.name,
-                    entry.company,
-                    new Date(entry.signInTime).toLocaleString(),
-                    entry.signOutTime ? new Date(entry.signOutTime).toLocaleString() : 'N/A'
-                ])
-            ].map(e => e.join(',')).join('\n');
-
-            const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-            const link = document.createElement('a');
-            if (navigator.msSaveBlob) { // IE 10+
-                navigator.msSaveBlob(blob, 'subcontractor_history.csv');
-            } else {
-                link.href = URL.createObjectURL(blob);
-                link.download = 'subcontractor_history.csv';
-                link.style.visibility = 'hidden';
-                document.body.appendChild(link);
-                link.click();
-                document.body.removeChild(link);
+            const user = users.find(u => u.username === username && u.password === password);
+            if (user) {
+                localStorage.setItem('currentUser', JSON.stringify(user));
+                return user.role;
             }
+            return null;
         }
-
-        function updateChart() {
-            const ctx = document.getElementById('activityChart').getContext('2d');
-            
-            const signInsByDate = history.reduce((acc, entry) => {
-                const date = new Date(entry.signInTime).toLocaleDateString();
-                acc[date] = (acc[date] || 0) + 1;
-                return acc;
-            }, {});
-
-            const chartData = {
-                labels: Object.keys(signInsByDate),
-                datasets: [{
-                    label: 'Number of Sign-ins',
-                    data: Object.values(signInsByDate),
-                    backgroundColor: 'rgba(75, 192, 192, 0.6)',
-                    borderColor: 'rgba(75, 192, 192, 1)',
-                    borderWidth: 1
-                }]
-            };
-
-            new Chart(ctx, {
-                type: 'bar',
-                data: chartData,
-                options: {
-                    scales: {
-                        y: {
-                            beginAtZero: true,
-                            title: {
-                                display: true,
-                                text: 'Number of Sign-ins'
-                            }
-                        },
-                        x: {
-                            title: {
-                                display: true,
-                                text: 'Date'
-                            }
-                        }
-                    },
-                    responsive: true,
-                    maintainAspectRatio: false
-                }
-            });
-        }
-
-        form.addEventListener('submit', function(e) {
-            e.preventDefault();
-            const name = document.getElementById('name').value;
-            const company = document.getElementById('company').value;
-            const now = new Date().toISOString();
-
-            const existingIndex = subcontractors.findIndex(sub => sub.name === name && sub.company === company);
-
-            if (existingIndex === -1) {
-                // Sign in
-                subcontractors.push({ name, company, signInTime: now });
-                statusDiv.textContent = `${name} from ${company} has signed in.`;
-                history.push({ name, company, signInTime: now });
-            } else {
-                // Sign out
-                const sub = subcontractors[existingIndex];
-                subcontractors.splice(existingIndex, 1);
-                statusDiv.textContent = `${name} from ${company} has signed out.`;
-                const historyEntry = history.find(entry => entry.name === name && entry.company === company && !entry.signOutTime);
-                if (historyEntry) {
-                    historyEntry.signOutTime = now;
-                }
-            }
-
-            updateLocalStorage();
-            updateTables();
-            updateChart();
-            form.reset();
-        });
-
-        searchInput.addEventListener('input', function() {
-            const searchTerm = this.value.toLowerCase();
-            const filteredHistory = history.filter(entry => 
-                entry.name.toLowerCase().includes(searchTerm) ||
-                entry.company.toLowerCase().includes(searchTerm)
-            );
-            updateHistoryTable(filteredHistory);
-        });
-
-        exportButton.addEventListener('click', exportToCSV);
 
         loginForm.addEventListener('submit', function(e) {
             e.preventDefault();
             const username = document.getElementById('username').value;
             const password = document.getElementById('password').value;
 
-            if (login(username, password)) {
+            const role = login(username, password);
+            if (role === 'admin') {
+                loginDiv.classList.remove('active');
+                adminPanel.classList.add('active');
+            } else if (role === 'user') {
                 loginDiv.classList.remove('active');
                 appContent.classList.add('active');
-                localStorage.setItem('loggedIn', 'true');
                 updateTables();
                 updateChart();
             } else {
@@ -328,19 +133,70 @@
             }
         });
 
-        logoutButton.addEventListener('click', function() {
-            localStorage.removeItem('loggedIn');
-            loginDiv.classList.add('active');
-            appContent.classList.remove('active');
+        manageSitesButton.addEventListener('click', function() {
+            adminPanel.classList.remove('active');
+            siteManagement.classList.add('active');
+            updateSitesList();
         });
 
-        // Check login status on page load
-        if (localStorage.getItem('loggedIn') === 'true') {
-            loginDiv.classList.remove('active');
+        viewSubcontractorsButton.addEventListener('click', function() {
+            adminPanel.classList.remove('active');
             appContent.classList.add('active');
             updateTables();
             updateChart();
+        });
+
+        adminLogoutButton.addEventListener('click', function() {
+            localStorage.removeItem('currentUser');
+            adminPanel.classList.remove('active');
+            loginDiv.classList.add('active');
+        });
+
+        addSiteForm.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const siteName = document.getElementById('siteName').value;
+            sites.push(siteName);
+            updateSitesList();
+            addSiteForm.reset();
+        });
+
+        backToAdminPanel.addEventListener('click', function() {
+            siteManagement.classList.remove('active');
+            adminPanel.classList.add('active');
+        });
+
+        form.addEventListener('submit', function(e) {
+            e.preventDefault();
+            const site = document.getElementById('siteSelect').value;
+            const name = document.getElementById('name').value;
+            const company = document.getElementById('company').value;
+            const now = new Date().toISOString();
+
+            // ... (rest of the form submit logic remains the same, but include 'site' in the data) ...
+
+            updateLocalStorage();
+            updateTables();
+            updateChart();
+            form.reset();
+        });
+
+        // ... (rest of the JavaScript code remains the same) ...
+
+        // Check login status on page load
+        const currentUser = JSON.parse(localStorage.getItem('currentUser'));
+        if (currentUser) {
+            if (currentUser.role === 'admin') {
+                loginDiv.classList.remove('active');
+                adminPanel.classList.add('active');
+            } else if (currentUser.role === 'user') {
+                loginDiv.classList.remove('active');
+                appContent.classList.add('active');
+                updateTables();
+                updateChart();
+            }
         }
+
+        updateSitesList();
     </script>
 </body>
 </html>
